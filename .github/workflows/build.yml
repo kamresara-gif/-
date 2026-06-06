@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Environment
         run: |
@@ -32,18 +34,13 @@ jobs:
       - name: Compile
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
-          export PATH=$PATH:$THEOS/bin
-          # محاولة التجميع الأساسي
-          make
-          # إذا لم يقم الـ make بإنشاء حزمة، سنقوم بإنشائها يدوياً
-          if [ ! -d "packages" ]; then
-            mkdir -p packages
-            # هذا الأمر يفترض أن المشروع مهيأ ليتم تغليفه بـ dpkg
-            # في حال استمر الخطأ، فالمشكلة في ملف Makefile نفسه
-          fi
+          # الدخول للمجلد الذي يظهر في صورة image_4.png
+          cd iOS-Simple-IGG-Mod-Menu-main
+          make package
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: tweak-package
-          path: packages/*.deb
+          # تحديد مسار الـ deb داخل المجلد الفرعي
+          path: iOS-Simple-IGG-Mod-Menu-main/packages/*.deb
