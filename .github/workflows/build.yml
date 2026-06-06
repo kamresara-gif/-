@@ -16,24 +16,26 @@ jobs:
 
       - name: Setup Environment
         run: |
-          echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
+          # Define Theos path
+          export THEOS=$GITHUB_WORKSPACE/theos
+          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          
           sudo apt-get update
           sudo apt-get install -y clang make git perl debianutils lzma build-essential fakeroot dpkg
           
-          if [ ! -d "$GITHUB_WORKSPACE/theos" ]; then
-            git clone --recursive --depth 1 https://github.com/theos/theos "$GITHUB_WORKSPACE/theos"
-          fi
+          # Clone Theos
+          git clone --recursive --depth 1 https://github.com/theos/theos "$THEOS"
           
-          if [ ! -d "$GITHUB_WORKSPACE/theos/sdks" ]; then
-            git clone --depth 1 https://github.com/theos/sdks.git "$GITHUB_WORKSPACE/theos/sdks"
-          fi
+          # Force clone SDKs into the correct directory
+          mkdir -p "$THEOS/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
       - name: Compile
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           cd iOS-Simple-IGG-Mod-Menu-main
-          # Force make to use the local THEOS path
-          make THEOS=$THEOS package
+          # Explicitly set SDK path and run make
+          make SDK_PATH=$THEOS/sdks package
 
       - name: Upload
         uses: actions/upload-artifact@v4
