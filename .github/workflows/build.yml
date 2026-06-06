@@ -33,5 +33,5 @@ jobs:
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           export PATH=$PATH:$THEOS/bin
-          make clean
+          # Remove 'make clean' if the Makefile does not support it
           make package FINALPACKAGE=1
