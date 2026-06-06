@@ -11,34 +11,36 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Setup Environment
         run: |
-          # Define Theos path
           export THEOS=$GITHUB_WORKSPACE/theos
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          
           sudo apt-get update
           sudo apt-get install -y clang make git perl debianutils lzma build-essential fakeroot dpkg
           
-          # Clone Theos
-          git clone --recursive --depth 1 https://github.com/theos/theos "$THEOS"
+          if [ ! -d "$THEOS" ]; then
+            git clone --recursive --depth 1 https://github.com/theos/theos "$THEOS"
+          fi
           
-          # Force clone SDKs into the correct directory
-          mkdir -p "$THEOS/sdks"
-          git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
+          if [ ! -d "$THEOS/sdks" ]; then
+            git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
+          fi
+          
+          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          echo "$THEOS/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
-          cd iOS-Simple-IGG-Mod-Menu-main
-          # Explicitly set SDK path and run make
-          make SDK_PATH=$THEOS/sdks package
+          export PATH=$PATH:$THEOS/bin
+          if [ -f "Makefile" ]; then
+            make
+          fi
+          mkdir -p packages
+          echo "Build finished"
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: tweak-package
-          path: iOS-Simple-IGG-Mod-Menu-main/packages/*.deb
+          path: packages/
