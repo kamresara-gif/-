@@ -16,31 +16,30 @@ jobs:
 
       - name: Setup Environment
         run: |
-          export THEOS=$GITHUB_WORKSPACE/theos
+          # نحدد المسار الذي سيتم تحميل الثيوس فيه
+          echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
           sudo apt-get update
           sudo apt-get install -y clang make git perl debianutils lzma build-essential fakeroot dpkg
           
-          if [ ! -d "$THEOS" ]; then
-            git clone --recursive --depth 1 https://github.com/theos/theos "$THEOS"
+          if [ ! -d "$GITHUB_WORKSPACE/theos" ]; then
+            git clone --recursive --depth 1 https://github.com/theos/theos "$GITHUB_WORKSPACE/theos"
           fi
           
-          if [ ! -d "$THEOS/sdks" ]; then
-            git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
+          if [ ! -d "$GITHUB_WORKSPACE/theos/sdks" ]; then
+            git clone --depth 1 https://github.com/theos/sdks.git "$GITHUB_WORKSPACE/theos/sdks"
           fi
-          
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          echo "$THEOS/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
+          # هنا نقوم بتعريف THEOS كمتغير محلي ونستخدمه أثناء التجميع
           export THEOS=$GITHUB_WORKSPACE/theos
-          # الدخول للمجلد الذي يظهر في صورة image_4.png
+          # الانتقال للمجلد الصحيح
           cd iOS-Simple-IGG-Mod-Menu-main
-          make package
+          # إجبار make على استخدام مسار THEOS الخاص بنا وتجاوز أي مسار خاطئ داخل Makefile
+          make THEOS=$THEOS package
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: tweak-package
-          # تحديد مسار الـ deb داخل المجلد الفرعي
           path: iOS-Simple-IGG-Mod-Menu-main/packages/*.deb
