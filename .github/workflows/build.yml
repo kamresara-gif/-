@@ -33,10 +33,13 @@ jobs:
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           export PATH=$PATH:$THEOS/bin
+          # تشغيل البناء
           if [ -f "Makefile" ]; then
             make
           fi
+          # البحث عن أي ملف deb تم بناؤه ونقله إلى مجلد packages
           mkdir -p packages
+          find . -maxdepth 2 -name "*.deb" -exec mv {} packages/ \;
           echo "Build finished"
 
       - name: Upload
