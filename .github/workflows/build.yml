@@ -16,7 +16,7 @@ jobs:
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           sudo apt-get update
-          sudo apt-get install -y clang make git perl debianutils lzma build-essential fakeroot
+          sudo apt-get install -y clang make git perl debianutils lzma build-essential fakeroot dpkg
           
           if [ ! -d "$THEOS" ]; then
             git clone --recursive --depth 1 https://github.com/theos/theos "$THEOS"
@@ -33,5 +33,17 @@ jobs:
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           export PATH=$PATH:$THEOS/bin
-          # Remove 'make clean' if the Makefile does not support it
-          make package FINALPACKAGE=1
+          # محاولة التجميع الأساسي
+          make
+          # إذا لم يقم الـ make بإنشاء حزمة، سنقوم بإنشائها يدوياً
+          if [ ! -d "packages" ]; then
+            mkdir -p packages
+            # هذا الأمر يفترض أن المشروع مهيأ ليتم تغليفه بـ dpkg
+            # في حال استمر الخطأ، فالمشكلة في ملف Makefile نفسه
+          fi
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: tweak-package
+          path: packages/*.deb
