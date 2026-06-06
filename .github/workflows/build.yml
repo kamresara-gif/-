@@ -1,4 +1,3 @@
-
 name: Tweak Cloud Compiler
 
 on:
@@ -27,31 +26,24 @@ jobs:
             git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
           fi
           
+          sudo mkdir -p /opt/theos
+          sudo ln -s $THEOS/makefiles /opt/theos/makefiles
+          sudo ln -s $THEOS/sdks /opt/theos/sdks
+          sudo ln -s $THEOS/bin /opt/theos/bin
+          
           echo "THEOS=$THEOS" >> $GITHUB_ENV
           echo "$THEOS/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
-          export THEOS=$GITHUB_WORKSPACE/theos
-          export PATH=$PATH:$THEOS/bin
-          
-          # Find the directory containing the Makefile
           MAKEFILE_PATH=$(find . -name "Makefile" -not -path "*/.*" -print -quit)
-          
-          if [ -z "$MAKEFILE_PATH" ]; then
-            echo "Error: No Makefile found."
-            exit 1
-          fi
-          
           MAKEFILE_DIR=$(dirname "$MAKEFILE_PATH")
           echo "Building in: $MAKEFILE_DIR"
           cd "$MAKEFILE_DIR"
           
-          # Run build
           make clean || true
           make package FINALPACKAGE=1
           
-          # Prepare output
           mkdir -p $GITHUB_WORKSPACE/output
           find . -name "*.deb" -exec cp {} $GITHUB_WORKSPACE/output/ \;
 
