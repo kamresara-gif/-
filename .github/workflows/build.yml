@@ -33,17 +33,22 @@ jobs:
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           export PATH=$PATH:$THEOS/bin
-          # تشغيل البناء
+          # Attempt to build, printing all output to debug
           if [ -f "Makefile" ]; then
             make
+          else
+            echo "No Makefile found!"
+            exit 1
           fi
-          # البحث عن أي ملف deb تم بناؤه ونقله إلى مجلد packages
-          mkdir -p packages
-          find . -maxdepth 2 -name "*.deb" -exec mv {} packages/ \;
-          echo "Build finished"
+          # Create output directory
+          mkdir -p output
+          # Look for any .deb file in the current directory and subdirectories
+          find . -name "*.deb" -exec cp {} output/ \;
+          echo "Files in output directory:"
+          ls -R output/
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: tweak-package
-          path: packages/
+          path: output/
