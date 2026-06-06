@@ -16,7 +16,6 @@ jobs:
 
       - name: Setup Environment
         run: |
-          # نحدد المسار الذي سيتم تحميل الثيوس فيه
           echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
           sudo apt-get update
           sudo apt-get install -y clang make git perl debianutils lzma build-essential fakeroot dpkg
@@ -31,11 +30,9 @@ jobs:
 
       - name: Compile
         run: |
-          # هنا نقوم بتعريف THEOS كمتغير محلي ونستخدمه أثناء التجميع
           export THEOS=$GITHUB_WORKSPACE/theos
-          # الانتقال للمجلد الصحيح
           cd iOS-Simple-IGG-Mod-Menu-main
-          # إجبار make على استخدام مسار THEOS الخاص بنا وتجاوز أي مسار خاطئ داخل Makefile
+          # Force make to use the local THEOS path
           make THEOS=$THEOS package
 
       - name: Upload
