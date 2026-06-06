@@ -1,3 +1,4 @@
+
 name: Tweak Cloud Compiler
 
 on:
@@ -33,22 +34,29 @@ jobs:
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           export PATH=$PATH:$THEOS/bin
-          # Attempt to build, printing all output to debug
-          if [ -f "Makefile" ]; then
-            make
-          else
-            echo "No Makefile found!"
+          
+          # Find the directory containing the Makefile
+          MAKEFILE_PATH=$(find . -name "Makefile" -not -path "*/.*" -print -quit)
+          
+          if [ -z "$MAKEFILE_PATH" ]; then
+            echo "Error: No Makefile found."
             exit 1
           fi
-          # Create output directory
-          mkdir -p output
-          # Look for any .deb file in the current directory and subdirectories
-          find . -name "*.deb" -exec cp {} output/ \;
-          echo "Files in output directory:"
-          ls -R output/
+          
+          MAKEFILE_DIR=$(dirname "$MAKEFILE_PATH")
+          echo "Building in: $MAKEFILE_DIR"
+          cd "$MAKEFILE_DIR"
+          
+          # Run build
+          make clean || true
+          make package FINALPACKAGE=1
+          
+          # Prepare output
+          mkdir -p $GITHUB_WORKSPACE/output
+          find . -name "*.deb" -exec cp {} $GITHUB_WORKSPACE/output/ \;
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: tweak-package
-          path: output/
+          path: output/*.deb
